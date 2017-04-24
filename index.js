@@ -11,14 +11,15 @@ var height = 500 - margin.top - margin.bottom;
 
 var x = d3.scaleBand().range([0, width]);
 var y = d3.scaleLinear().range([height, 0]);
+var tx = 5;
+var ty = 0;
 
 
 var chart = d3.select('.chart')
   .attr('width', width + margin.left + margin.right)
   .attr('height', height + margin.top + margin.bottom)
   .append('g')
-  .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-  ;
+  .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
 d3.json(dataLink, json => {
   data = json['data'];
@@ -47,16 +48,27 @@ d3.json(dataLink, json => {
     .call(yAxis);
   //Y axis applied
 
+  var tooltip = d3.select('body')
+    .append('div')
+    .attr('class', 'tooltip');
+
+
   chart.selectAll('.bar')
     .data(data)
     .enter().append('rect')
     .attr('class', 'bar')
-    .attr('x', data => x(data[0]))
-    .attr('y', data => y(data[1]))
+    .attr('x', d => x(d[0]))
+    .attr('y', d => y(d[1]))
     .attr('width', x.bandwidth())
-    .attr('height', data => height - y(data[1]))
-    ;
-
-
+    .attr('height', d => height - y(d[1]))
+    .on('mouseover', () => tooltip.style('display', null))
+    .on('mouseout', () => tooltip.style('display', 'none'))
+    .on('mousemove', function mousemove(d) {
+      tooltip
+        .style("left", d3.event.pageX + 30 + "px")
+        .style("top", d3.event.pageY - 70 + "px")
+        .style("display", "inline-block")
+        .html('<h3>' + (d[0].split('-')[0] + '-' + d[0].split('-')[1]) + '</h3>' + "<br>" + '<h5>' + "$" + (d3.format(",.2f")(d[1])) + '</h5>');
+    });
 
 });
